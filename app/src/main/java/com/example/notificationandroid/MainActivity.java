@@ -6,7 +6,10 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import android.app.Notification;
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -32,6 +35,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
+                Intent activityIntent = new Intent(MainActivity.this,MainActivity.class);
+                PendingIntent contentIntent = PendingIntent.getActivity(MainActivity.this,0,activityIntent, PendingIntent.FLAG_IMMUTABLE);
+
+                Intent broadcastIntent = new Intent(MainActivity.this,NotificationReceiver.class);
+                broadcastIntent.putExtra("toast",text.getText().toString());
+                PendingIntent actionIntent = PendingIntent.getBroadcast(MainActivity.this,0,broadcastIntent,PendingIntent.FLAG_IMMUTABLE);
+
                 Notification notification = new NotificationCompat.Builder(MainActivity.this, App.CHANNEL_1_ID)
                         .setSmallIcon(R.drawable.baseline_cake_24)
                         .setContentTitle(title.getText().toString())
@@ -39,6 +49,11 @@ public class MainActivity extends AppCompatActivity {
                         //It provide same functionality as Notification Important declare in channel but it can be use for lower api level
                         .setPriority(NotificationCompat.PRIORITY_HIGH)
                         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+                        .setColor(Color.BLUE)
+                        .setContentIntent(contentIntent)
+                        .setAutoCancel(true)
+                        .setOnlyAlertOnce(true)
+                        .addAction(R.drawable.baseline_cake_24,"Toast",actionIntent)
                         .build();
 
                 if (ActivityCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {

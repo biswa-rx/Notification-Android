@@ -16,9 +16,6 @@
         android:theme="@style/Theme.NotificationAndroid"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity2"
-            android:exported="false" />
-        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
@@ -27,6 +24,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".NotificationReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="your.intent.action" />
+                <!-- Add any additional intent filters if needed -->
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
