@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.RemoteInput;
 import androidx.media.session.MediaButtonReceiver;
 
 import android.app.Notification;
@@ -21,12 +22,18 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 //import com.example.notificationandroid.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
 //    private ActivityMainBinding binding;
     private NotificationManagerCompat notificationManagerCompat;
     EditText title,text;
+
+    static List<Message> MESSAGES = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +44,14 @@ public class MainActivity extends AppCompatActivity {
         title = findViewById(R.id.edit_title);
         text = findViewById(R.id.edit_message);
 
+        MESSAGES.add(new Message("GOOD MORNING","biswa"));
+        MESSAGES.add(new Message("Same",null));
+        MESSAGES.add(new Message("hru??","biswa"));
+        MESSAGES.add(new Message("Fine",null));
+        MESSAGES.add(new Message("Good to know","biswa"));
+        MESSAGES.add(new Message("Bye",null));
+
+
         findViewById(R.id.button1).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -44,24 +59,37 @@ public class MainActivity extends AppCompatActivity {
                 Intent activityIntent = new Intent(MainActivity.this,MainActivity.class);
                 PendingIntent contentIntent = PendingIntent.getActivity(MainActivity.this,0,activityIntent, PendingIntent.FLAG_IMMUTABLE);
 
-                Intent broadcastIntent = new Intent(MainActivity.this,NotificationReceiver.class);
-                broadcastIntent.putExtra("toast",text.getText().toString());
-                PendingIntent actionIntent = PendingIntent.getBroadcast(MainActivity.this,0,broadcastIntent,PendingIntent.FLAG_IMMUTABLE);
+                RemoteInput remoteInput = new RemoteInput.Builder("key_text_reply")
+                        .setLabel("Your answer...")
+                        .build();
 
-                Bitmap largeIcon = BitmapFactory.decodeResource(getResources(),R.drawable.sample);
+                Intent replayIntent = new Intent(MainActivity.this, DirectReplayReceiver.class);
+                PendingIntent replayPendingIntent = PendingIntent.getBroadcast(MainActivity.this,0,replayIntent, PendingIntent.FLAG_IMMUTABLE);
 
-                Bitmap picture = BitmapFactory.decodeResource(getResources(),R.drawable.sample2);
+                NotificationCompat.Action replayAction = new NotificationCompat.Action.Builder(
+                        R.drawable.baseline_send_24,
+                        "Replay",
+                        replayPendingIntent
+                ).addRemoteInput(remoteInput).build();
 
+                NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle("Me");
+                messagingStyle.setConversationTitle("Group Chat");
+
+                for (Message chatMessage: MESSAGES){
+                    NotificationCompat.MessagingStyle.Message notificationMessage =
+                            new NotificationCompat.MessagingStyle.Message(
+                                    chatMessage.getText(),
+                                    chatMessage.getTimestamp(),
+                                    chatMessage.getSender()
+                            );
+                    messagingStyle.addMessage(notificationMessage);
+                }
 
                 Notification notification = new NotificationCompat.Builder(MainActivity.this, App.CHANNEL_1_ID)
                         .setSmallIcon(R.drawable.baseline_cake_24)
-                        .setContentTitle(title.getText().toString())
-                        .setContentText(text.getText().toString())
-                        .setLargeIcon(picture)
-                        .setStyle(new NotificationCompat.BigPictureStyle()
-                                .bigPicture(picture)
-                                .bigLargeIcon(null)
-                        )
+                        .setStyle(messagingStyle)
+                        .addAction(replayAction)
+                        .setColor(Color.GREEN)
                         //It provide same functionality as Notification Important declare in channel but it can be use for lower api level
                         .setPriority(NotificationCompat.PRIORITY_HIGH)
                         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
